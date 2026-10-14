@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sistema de gerenciamento de estoque de produtos - EstoqueDB" />
+  <title>EstoqueDB – Gerenciamento de Produtos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">📦</span>
+        <span class="logo-text">EstoqueDB</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" id="nav-dashboard" onclick="showSection('dashboard')">
+        <span class="nav-icon">▣</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-produtos" onclick="showSection('produtos')">
+        <span class="nav-icon">🗂</span>
+        <span class="nav-label">Produtos</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="api-status" id="api-status">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">Verificando API...</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title" id="page-title">Dashboard</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrapper" id="search-wrapper" style="display:none">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" class="search-input" placeholder="Buscar produtos..." oninput="filterTable()" />
+        </div>
+        <button class="btn btn-primary" id="btn-add" onclick="openModal('create')" style="display:none">
+          <span>＋</span> Novo Produto
+        </button>
+      </div>
+    </header>
+
+    <!-- SECTION: Dashboard -->
+    <section id="section-dashboard" class="section active">
+
+      <!-- Stat cards -->
+      <div class="stats-grid">
+        <div class="stat-card" id="card-total">
+          <div class="stat-icon stat-icon--indigo">🗂</div>
+          <div class="stat-info">
+            <p class="stat-label">Total de Produtos</p>
+            <h2 class="stat-value" id="stat-total">—</h2>
+          </div>
+        </div>
+        <div class="stat-card" id="card-valor">
+          <div class="stat-icon stat-icon--green">💰</div>
+          <div class="stat-info">
+            <p class="stat-label">Valor Total em Estoque</p>
+            <h2 class="stat-value" id="stat-valor">—</h2>
+          </div>
+        </div>
+        <div class="stat-card" id="card-categorias">
+          <div class="stat-icon stat-icon--purple">🏷</div>
+          <div class="stat-info">
+            <p class="stat-label">Categorias</p>
+            <h2 class="stat-value" id="stat-categorias">—</h2>
+          </div>
+        </div>
+        <div class="stat-card" id="card-estoque">
+          <div class="stat-icon stat-icon--amber">📊</div>
+          <div class="stat-info">
+            <p class="stat-label">Itens em Estoque</p>
+            <h2 class="stat-value" id="stat-estoque">—</h2>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent products -->
+      <div class="card mt-6">
+        <div class="card-header">
+          <h3 class="card-title">Produtos Recentes</h3>
+          <button class="btn btn-ghost" onclick="showSection('produtos')">Ver todos →</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="table" id="recent-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Valor</th>
+                <th>Quantidade</th>
+              </tr>
+            </thead>
+            <tbody id="recent-tbody">
+              <tr><td colspan="5" class="empty-state">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: Produtos -->
+    <section id="section-produtos" class="section">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Todos os Produtos</h3>
+          <span class="badge" id="produto-count-badge">0 produtos</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="table" id="products-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Valor</th>
+                <th>Quantidade</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody">
+              <tr><td colspan="6" class="empty-state">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+    <div class="modal" id="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Novo Produto</h2>
+        <button class="modal-close" id="modal-close-btn" onclick="closeModal()" aria-label="Fechar modal">✕</button>
+      </div>
+      <form id="product-form" onsubmit="submitForm(event)" novalidate>
+        <input type="hidden" id="form-id" />
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="form-nome">Nome do Produto *</label>
+            <input type="text" id="form-nome" class="form-input" placeholder="Ex: Notebook Dell" required />
+            <span class="form-error" id="err-nome"></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-categoria">Categoria *</label>
+            <input type="text" id="form-categoria" class="form-input" placeholder="Ex: Eletrônicos" required />
+            <span class="form-error" id="err-categoria"></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-valor">Valor (R$) *</label>
+            <input type="number" id="form-valor" class="form-input" placeholder="0.00" step="0.01" min="0" required />
+            <span class="form-error" id="err-valor"></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-quantidade">Quantidade *</label>
+            <input type="number" id="form-quantidade" class="form-input" placeholder="0" min="0" required />
+            <span class="form-error" id="err-quantidade"></span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="form-submit-btn">
+            <span id="submit-label">Salvar Produto</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirm delete modal -->
+  <div class="modal-overlay" id="confirm-overlay" onclick="closeConfirm()">
+    <div class="modal modal--sm" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Confirmar Exclusão</h2>
+        <button class="modal-close" onclick="closeConfirm()">✕</button>
+      </div>
+      <div class="confirm-body">
+        <div class="confirm-icon">⚠️</div>
+        <p class="confirm-text">Tem certeza que deseja excluir o produto <strong id="confirm-product-name"></strong>?</p>
+        <p class="confirm-subtext">Esta ação não pode ser desfeita.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeConfirm()">Cancelar</button>
+        <button class="btn btn-danger" id="confirm-delete-btn" onclick="confirmDelete()">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
