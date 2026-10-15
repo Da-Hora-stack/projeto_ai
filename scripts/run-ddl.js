@@ -6,18 +6,40 @@ const mysql = require('mysql2');
 const fs    = require('fs');
 const path  = require('path');
 
+// Railway MySQL injeta variáveis com prefixo MYSQL (ex: MYSQLHOST).
+// Aceita também o formato customizado DB_HOST como fallback.
+const host     = process.env.MYSQLHOST     || process.env.DB_HOST;
+const user     = process.env.MYSQLUSER     || process.env.DB_USER;
+const password = process.env.MYSQLPASSWORD || process.env.DB_PASSWORD;
+const database = process.env.MYSQLDATABASE || process.env.DB_NAME;
+const port     = process.env.MYSQLPORT     || process.env.DB_PORT || 3306;
+
+// Diagnóstico — mostra o que foi encontrado
+console.log('🔍 Variáveis detectadas:');
+console.log(`   HOST: ${host}`);
+console.log(`   USER: ${user}`);
+console.log(`   DB:   ${database}`);
+console.log(`   PORT: ${port}`);
+
+if (!host || !user || !database) {
+  console.error('❌ Variáveis de ambiente do banco não encontradas!');
+  console.error('   Execute: npx railway link → selecione o serviço MySQL');
+  process.exit(1);
+}
+
 const sqlFile = path.join(__dirname, '..', 'db', 'DDL.sql');
 const sql     = fs.readFileSync(sqlFile, 'utf8');
 
 const conn = mysql.createConnection({
-  host             : process.env.DB_HOST,
-  user             : process.env.DB_USER,
-  password         : process.env.DB_PASSWORD,
-  port             : process.env.DB_PORT || 3306,
-  multipleStatements: true,   // necessário para rodar vários statements de uma vez
+  host,
+  user,
+  password,
+  database,
+  port: parseInt(port),
+  multipleStatements: true, // necessário para rodar vários statements de uma vez
 });
 
-console.log(`Conectando em ${process.env.DB_HOST}:${process.env.DB_PORT}...`);
+console.log(`\nConectando em ${host}:${port}...`);
 
 conn.connect((err) => {
   if (err) {
