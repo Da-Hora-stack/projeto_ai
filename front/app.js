@@ -1,10 +1,10 @@
 /* =============================================
    EstoqueDB – app.js
-   Consome a API REST em http://localhost:3000
+   Consome a API REST via caminho relativo (/produtos)
    Endpoints: GET/POST/PUT/DELETE /produtos
    ============================================= */
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = ''; // caminho relativo – funciona em localhost e no Railway
 
 // ---- State ----
 let allProducts = [];
