@@ -27,7 +27,7 @@ if (!host || !user || !database) {
   process.exit(1);
 }
 
-const sqlFile = path.join(__dirname, '..', 'db', 'DDL.sql');
+const sqlFile = path.join(__dirname, '..', 'db', 'DDL_railway.sql');
 const sql     = fs.readFileSync(sqlFile, 'utf8');
 
 const conn = mysql.createConnection({
